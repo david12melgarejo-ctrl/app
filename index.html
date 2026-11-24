@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#2563EB" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>Equilibrio Metabólico &amp; Piel</title>
+  <!-- Tailwind CSS para diseño responsivo móvil-primero -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Fuente Inter para máxima legibilidad -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <script>
+    // Configuración de paleta personalizada en azul suave y amarillo cálido
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brandBlue: {
+              50: '#EFF6FF',
+              100: '#DBEAFE',
+              200: '#BFDBFE',
+              500: '#3B82F6',
+              600: '#2563EB',
+              700: '#1D4ED8',
+              900: '#1E3A8A',
+            },
+            warmAmber: {
+              50: '#FFFBEB',
+              100: '#FEF3C7',
+              200: '#FDE68A',
+              400: '#FBBF24',
+              500: '#F59E0B',
+              600: '#D97706',
+              800: '#92400E',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Estilos base y mejoras táctiles para Android / Redmi 13C */
+    * {
+      -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #F4F7FB;
+      color: #0F172A;
+      overflow-x: hidden;
+      padding-bottom: 88px; /* Espacio para la barra inferior fija */
+    }
+    /* Ocultar barra de scroll horizontal en selector de días manteniendo desplazamiento suave */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* Animación suave para tarjetas y transiciones de pestaña */
+    .tab-panel {
+      animation: fadeSlide 0.22s ease-out;
+    }
+    @keyframes fadeSlide {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    /* Estilo de checkbox personalizado táctil */
+    .custom-check:checked {
+      background-color: #2563EB;
+      border-color: #2563EB;
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-brandBlue-200 selection:text-brandBlue-900">
+
+  <!-- CABECERA FIJA SUPERIOR -->
+  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-brandBlue-100 shadow-sm">
+    <div class="max-w-lg mx-auto px-4 py-3 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5">
+        <!-- Ícono SVG de equilibrio hormonal y piel -->
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-brandBlue-500 to-brandBlue-700 flex items-center justify-center text-white shadow-sm shrink-0">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-base font-extrabold tracking-tight text-slate-900 leading-tight">Equilibrio Metabólico &amp; Piel</h1>
+          <p class="text-[11px] font-medium text-brandBlue-600">Anti-Cortisol · Anti-Insulina · Piel</p>
+        </div>
+      </div>
+
+      <!-- Indicador rápido de progreso diario -->
+      <div class="flex items-center gap-2 bg-warmAmber-50 border border-warmAmber-200 px-3 py-1.5 rounded-2xl">
+        <span class="text-xs font-bold text-warmAmber-800" id="headerProgressText">0% hoy</span>
+      </div>
+    </div>
+
+    <!-- SELECTOR DE DÍAS DE LA SEMANA (Visible en Plan y Hábitos) -->
+    <div id="daySelectorBar" class="max-w-lg mx-auto px-3 pb-2.5 pt-1">
+      <div class="flex items-center justify-between gap-1.5 overflow-x-auto no-scrollbar" id="dayButtonsContainer">
+        <!-- Generado dinámicamente por JS -->
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="max-w-lg mx-auto px-4 pt-4 space-y-4">
+
+    <!-- =====================================================================
+         PESTAÑA 1: PLAN DIARIO (5 FASES CON HUEVOS EXPLÍCITOS)
+    ====================================================================== -->
+    <section id="tab-plan" class="tab-panel space-y-4">
+      <!-- Banner de enfoque del día -->
+      <div class="rounded-3xl bg-gradient-to-r from-brandBlue-600 to-brandBlue-500 p-4 text-white shadow-md">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <span class="inline-block text-[11px] font-bold uppercase tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full mb-1.5" id="planDayBadge">Lunes</span>
+            <h2 class="text-lg font-bold leading-snug" id="planDayFocus">Arranque Anti-Cortisol &amp; Fibra Alta</h2>
+            <p class="text-xs text-brandBlue-100 mt-1" id="planDaySummary">Meta de hoy: 5 a 6 huevos repartidos · Cero broaster · Cero azúcar.</p>
+          </div>
+          <div class="bg-warmAmber-400 text-slate-900 rounded-2xl px-3 py-2 text-center shrink-0 shadow-sm">
+            <span class="block text-lg font-extrabold leading-none" id="planEggTarget">5-6</span>
+            <span class="text-[10px] font-bold uppercase tracking-tight">Huevos</span>
+          </div>
+        </div>
+
+        <!-- Barra de progreso de comidas del día -->
+        <div class="mt-3.5 pt-3 border-t border-white/15">
+          <div class="flex justify-between text-xs font-medium mb-1">
+            <span>Fases completadas hoy</span>
+            <span id="mealsCountLabel">0 / 5 fases</span>
+          </div>
+          <div class="w-full h-2 bg-brandBlue-900/40 rounded-full overflow-hidden">
+            <div id="mealsProgressBar" class="h-full bg-warmAmber-400 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recordatorio rápido de orden de ingesta -->
+      <div class="rounded-2xl bg-warmAmber-50 border border-warmAmber-200 p-3 flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-warmAmber-200/80 text-warmAmber-800 flex items-center justify-center font-extrabold text-sm shrink-0">
+          1·2·3
+        </div>
+        <p class="text-xs text-slate-700 leading-relaxed">
+          <strong class="text-slate-900">Orden obligatorio en almuerzo:</strong> 1.° Vegetales + limón → 2.° Presa o huevos → 3.° Menestra + máximo ½ arroz.
+        </p>
+      </div>
+
+      <!-- Contenedor de las 5 Fases del Día -->
+      <div id="phasesContainer" class="space-y-3">
+        <!-- Renderizado dinámicamente por JS -->
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         PESTAÑA 2: HÁBITOS & REGISTRO DIARIO
+    ====================================================================== -->
+    <section id="tab-habits" class="tab-panel hidden space-y-4">
+      <!-- Contadores interactivos: Huevos e Infusiones -->
+      <div class="grid grid-cols-2 gap-3">
+        <!-- Contador de Huevos -->
+        <div class="bg-white rounded-3xl p-4 border border-warmAmber-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-warmAmber-800 bg-warmAmber-100 px-2 py-0.5 rounded-lg">Proteína Base</span>
+              <span class="text-lg">🥚</span>
+            </div>
+            <h3 class="text-sm font-bold text-slate-800 mt-2">Huevos Hoy</h3>
+            <p class="text-[11px] text-slate-500">Meta: 3 a 6 unidades</p>
+          </div>
+          <div class="mt-4 flex items-center justify-between bg-warmAmber-50 rounded-2xl p-1.5 border border-warmAmber-200">
+            <button type="button" onclick="updateCounter('eggs', -1)" class="w-10 h-10 rounded-xl bg-white text-slate-700 font-bold text-lg shadow-sm active:scale-95 transition flex items-center justify-center" aria-label="Restar huevo">−</button>
+            <span id="eggCounterVal" class="text-xl font-extrabold text-slate-900">0</span>
+            <button type="button" onclick="updateCounter('eggs', 1)" class="w-10 h-10 rounded-xl bg-warmAmber-400 text-slate-900 font-bold text-lg shadow-sm active:scale-95 transition flex items-center justify-center" aria-label="Sumar huevo">+</button>
+          </div>
+        </div>
+
+        <!-- Contador de Infusiones Relajantes -->
+        <div class="bg-white rounded-3xl p-4 border border-brandBlue-100 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-brandBlue-700 bg-brandBlue-50 px-2 py-0.5 rounded-lg">Anti-Cortisol</span>
+              <span class="text-lg">🍵</span>
+            </div>
+            <h3 class="text-sm font-bold text-slate-800 mt-2">Infusiones</h3>
+            <p class="text-[11px] text-slate-500">Manzanilla/Toronjil (1L)</p>
+          </div>
+          <div class="mt-4 flex items-center justify-between bg-brandBlue-50 rounded-2xl p-1.5 border border-brandBlue-100">
+            <button type="button" onclick="updateCounter('tea', -1)" class="w-10 h-10 rounded-xl bg-white text-slate-700 font-bold text-lg shadow-sm active:scale-95 transition flex items-center justify-center" aria-label="Restar taza">−</button>
+            <div class="text-center">
+              <span id="teaCounterVal" class="text-xl font-extrabold text-brandBlue-900">0</span>
+              <span class="block text-[9px] font-semibold text-brandBlue-600 -mt-1">tazas (250ml)</span>
+            </div>
+            <button type="button" onclick="updateCounter('tea', 1)" class="w-10 h-10 rounded-xl bg-brandBlue-600 text-white font-bold text-lg shadow-sm active:scale-95 transition flex items-center justify-center" aria-label="Sumar taza">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Checklist de Hábitos Clave Anti-Cortisol, Insulina y Cuidado de Piel -->
+      <div class="bg-white rounded-3xl p-4 border border-slate-200/80 shadow-sm space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Hábitos Clave del Día</h3>
+            <p class="text-xs text-slate-500">Marca tus acciones para bajar cortisol y cuidar estrías</p>
+          </div>
+          <span id="habitsBadgeCount" class="text-xs font-bold bg-brandBlue-50 text-brandBlue-700 px-2.5 py-1 rounded-xl">0/7</span>
+        </div>
+
+        <div id="habitsChecklistContainer" class="space-y-2.5">
+          <!-- Generado dinámicamente por JS -->
+        </div>
+      </div>
+
+      <!-- Botón para reiniciar solo el día actual -->
+      <div class="pt-1 flex justify-end">
+        <button type="button" onclick="confirmResetDay()" class="text-xs font-semibold text-slate-500 hover:text-rose-600 px-3 py-2 rounded-xl transition">
+          Reiniciar registros de este día
+        </button>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         PESTAÑA 3: GUÍA RÁPIDA & REGLAS DE ORO
+    ====================================================================== -->
+    <section id="tab-guide" class="tab-panel hidden space-y-4">
+      <!-- Tarjeta 1: Orden Estricto de Ingesta -->
+      <div class="bg-white rounded-3xl p-4 border border-brandBlue-100 shadow-sm space-y-3">
+        <div class="flex items-center gap-2.5">
+          <span class="w-8 h-8 rounded-xl bg-brandBlue-100 text-brandBlue-700 flex items-center justify-center font-bold">1</span>
+          <h3 class="text-base font-bold text-slate-900">Orden Estricto de Ingesta</h3>
+        </div>
+        <p class="text-xs text-slate-600 leading-relaxed">
+          Comer en este orden crea una malla de fibra en el estómago que frena el pico de glucosa hasta un 40%, apagando la acantosis nigricans:
+        </p>
+        <div class="space-y-2">
+          <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center gap-3">
+            <span class="font-extrabold text-emerald-700 text-sm">1.°</span>
+            <div class="text-xs">
+              <strong class="text-emerald-950 block">Fibra + Ácido (Ensalada con limón)</strong>
+              <span class="text-emerald-800">Brócoli, vainitas, espinaca, tomate, pepino + jugo de limón y palta.</span>
+            </div>
+          </div>
+          <div class="p-3 rounded-2xl bg-warmAmber-50 border border-warmAmber-200 flex items-center gap-3">
+            <span class="font-extrabold text-warmAmber-800 text-sm">2.°</span>
+            <div class="text-xs">
+              <strong class="text-amber-950 block">Proteína y Grasas Buenas</strong>
+              <span class="text-amber-900">Huevos enteros, pollo a la plancha/horno, pescado, carne o atún.</span>
+            </div>
+          </div>
+          <div class="p-3 rounded-2xl bg-brandBlue-50 border border-brandBlue-200 flex items-center gap-3">
+            <span class="font-extrabold text-brandBlue-700 text-sm">3.°</span>
+            <div class="text-xs">
+              <strong class="text-brandBlue-950 block">Carbohidratos al Final</strong>
+              <span class="text-brandBlue-800">Menestra (lenteja, frejol, pallar) + máximo ½ porción de arroz.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta 2: Preparación de Vegetales -->
+      <div class="bg-white rounded-3xl p-4 border border-slate-200/80 shadow-sm space-y-2.5">
+        <div class="flex items-center gap-2.5">
+          <span class="w-8 h-8 rounded-xl bg-warmAmber-100 text-warmAmber-800 flex items-center justify-center font-bold">2</span>
+          <h3 class="text-base font-bold text-slate-900">Preparación Correcta de Vegetales</h3>
+        </div>
+        <ul class="text-xs text-slate-700 space-y-2 leading-relaxed">
+          <li class="flex items-start gap-2">
+            <span class="text-brandBlue-600 font-bold">•</span>
+            <span><strong>Brócoli y vainitas al vapor (3 a 5 min máx):</strong> Ponlos con solo dos dedos de agua hirviendo y tapa la olla. Deben quedar verde brillante y algo crocantes para conservar la vitamina C (clave para fabricar colágeno en tus estrías).</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="text-brandBlue-600 font-bold">•</span>
+            <span><strong>Espinaca salteada rápida:</strong> Agrégala 1 minuto a la sartén junto con tus huevos revueltos para sumar magnesio natural sin esfuerzo.</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="text-brandBlue-600 font-bold">•</span>
+            <span><strong>Hidratación inteligente:</strong> Toma tu litro de manzanilla con toronjil a sorbos durante la tarde y noche, no de golpe durante el almuerzo.</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Tarjeta 3: Seguridad en Suplementos -->
+      <div class="bg-white rounded-3xl p-4 border border-rose-200 shadow-sm space-y-2.5">
+        <div class="flex items-center gap-2.5">
+          <span class="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold">!</span>
+          <h3 class="text-base font-bold text-slate-900">Seguridad en Suplementos</h3>
+        </div>
+        <div class="space-y-2 text-xs text-slate-700 leading-relaxed">
+          <div class="p-2.5 rounded-2xl bg-slate-50 border border-slate-200">
+            <strong class="text-slate-900">Vitamina E (400 UI) y Espirulina:</strong> Tómalas en el desayuno junto a los huevos o palta (necesitan grasa para absorberse bien). Introdúcelas de una en una.
+          </div>
+          <div class="p-2.5 rounded-2xl bg-slate-50 border border-slate-200">
+            <strong class="text-slate-900">Citrato de Magnesio:</strong> Mejor con comida o por la tarde/noche para relajar el sistema nervioso y evitar efecto laxante en ayunas.
+          </div>
+          <div class="p-2.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-950">
+            <strong>⚠️ Precaución con Citrato de Potasio:</strong> No lo tomes por tu cuenta sin análisis de sangre ni indicación médica; el exceso de potasio puede alterar el ritmo cardíaco.
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta 4: Cuidado de Estrías y Acantosis -->
+      <div class="bg-white rounded-3xl p-4 border border-slate-200/80 shadow-sm space-y-2">
+        <h3 class="text-base font-bold text-slate-900">Reglas para Piel (Estrías y Zonas Oscuras)</h3>
+        <ul class="text-xs text-slate-700 space-y-1.5 leading-relaxed">
+          <li>• <strong>Crema Nivea:</strong> Úsala en la mañana (después de ducharte) y antes de entrenar fuerza para mantener elasticidad en hombros, brazos, codos y abdomen.</li>
+          <li>• <strong>Bloqueador solar diario:</strong> Obligatorio si expones brazos, hombros o cuello al sol, para evitar que las estrías rojas se vuelvan manchas marrones permanentes.</li>
+          <li>• <strong>Cero fricción agresiva:</strong> Nunca frotes con piedra pómez ni esponjas duras el cuello, axilas o nudillos; la irritación oscurece más la piel.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         PESTAÑA 4: SUBIR A GITHUB E INSTALAR EN REDMI 13C
+    ====================================================================== -->
+    <section id="tab-install" class="tab-panel hidden space-y-4">
+      <div class="rounded-3xl bg-gradient-to-br from-brandBlue-700 to-brandBlue-900 p-5 text-white shadow-md">
+        <span class="inline-block text-[11px] font-bold uppercase tracking-wider bg-warmAmber-400 text-slate-900 px-2.5 py-0.5 rounded-full mb-2">PWA Lista para Android</span>
+        <h2 class="text-lg font-extrabold leading-snug">Instala esta App en tu Redmi 13C</h2>
+        <p class="text-xs text-brandBlue-100 mt-1.5 leading-relaxed">
+          Esta web ya incluye su manifiesto PWA y caché offline integrados. Súbela gratis a GitHub Pages en 3 pasos y úsala como una app nativa sin gastar datos.
+        </p>
+
+        <!-- Botón directo si el navegador ya habilitó el prompt de instalación -->
+        <button id="btnInstallPwa" type="button" onclick="triggerInstallPrompt()" class="hidden mt-4 w-full py-3 px-4 rounded-2xl bg-warmAmber-400 hover:bg-warmAmber-300 text-slate-900 font-extrabold text-sm shadow-sm active:scale-98 transition">
+          📲 Instalar App ahora en mi celular
+        </button>
+      </div>
+
+      <!-- Paso 1 -->
+      <div class="bg-white rounded-3xl p-4 border border-slate-200/80 shadow-sm space-y-2">
+        <div class="flex items-center gap-2.5">
+          <span class="w-7 h-7 rounded-full bg-brandBlue-600 text-white text-xs font-extrabold flex items-center justify-center shrink-0">1</span>
+          <h3 class="text-sm font-bold text-slate-900">Crea un repositorio en GitHub</h3>
+        </div>
+        <p class="text-xs text-slate-600 leading-relaxed pl-9">
+          Entra a <strong>github.com</strong> desde tu celular o PC, inicia sesión y crea un repositorio público nuevo llamado por ejemplo <code class="bg-slate-100 px-1.5 py-0.5 rounded text-brandBlue-700 font-semibold">equilibrio-piel</code>.
+        </p>
+      </div>
+
+      <!-- Paso 2 -->
+      <div class="bg-white rounded-3xl p-4 border border-slate-200/80 shadow-sm space-y-2">
+        <div class="flex items-center gap-2.5">
+          <span class="w-7 h-7 rounded-full bg-brandBlue-600 text-white text-xs font-extrabold flex items-center justify-center shrink-0">2</span>
+          <h3 class="text-sm font-bold text-slate-900">Sube este archivo como <code class="text-brandBlue-700">index.html</code></h3>
+        </div>
+        <p class="text-xs text-slate-600 leading-relaxed pl-9">
+          Dentro del repositorio, pulsa <strong>Add file → Upload files</strong> (o Create new file), pega o sube este archivo exactamente con el nombre <code class="bg-slate-100 px-1.5 py-0.5 rounded font-semibold">index.html</code> y guarda los cambios (<em>Commit changes</em>).
+        </p>
+      </div>
+
+      <!-- Paso 3 -->
+      <div class="bg-white rounded-3xl p-4 border border-slate-200/80 shadow-sm space-y-2">
+        <div class="flex items-center gap-2.5">
+          <span class="w-7 h-7 rounded-full bg-brandBlue-600 text-white text-xs font-extrabold flex items-center justify-center shrink-0">3</span>
+          <h3 class="text-sm font-bold text-slate-900">Activa GitHub Pages e instala en Chrome</h3>
+        </div>
+        <div class="text-xs text-slate-600 leading-relaxed pl-9 space-y-2">
+          <p>1. Ve a <strong>Settings → Pages</strong> en tu repositorio, elige la rama <code class="bg-slate-100 px-1 rounded">main</code> y guarda. En 1 minuto te dará un enlace <code class="bg-slate-100 px-1 rounded">tuusuario.github.io/equilibrio-piel/</code>.</p>
+          <p>2. Abre ese enlace en <strong>Google Chrome</strong> en tu Redmi 13C, toca los <strong>3 puntitos (⋮)</strong> arriba a la derecha y selecciona <strong>"Agregar a la pantalla principal"</strong> o <strong>"Instalar aplicación"</strong>.</p>
+        </div>
+      </div>
+
+      <!-- Botón opcional para descargar copia de respaldo del progreso -->
+      <div class="bg-warmAmber-50 border border-warmAmber-200 rounded-3xl p-4 flex items-center justify-between gap-3">
+        <div>
+          <h4 class="text-xs font-bold text-warmAmber-900">Almacenamiento Local Activo</h4>
+          <p class="text-[11px] text-warmAmber-800 mt-0.5">Tus marcas de comidas, huevos e infusiones se guardan automáticamente en este teléfono.</p>
+        </div>
+        <span class="text-2xl">💾</span>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL DE CONFIRMACIÓN PERSONALIZADO (Sin alert/confirm nativos) -->
+  <div id="customModal" class="fixed inset-0 z-50 hidden bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-xl border border-slate-100 space-y-4">
+      <h3 class="text-base font-extrabold text-slate-900" id="modalTitle">¿Reiniciar día?</h3>
+      <p class="text-xs text-slate-600 leading-relaxed" id="modalBody">Se pondrán en cero los contadores de huevos, infusiones y checkboxes de este día.</p>
+      <div class="flex items-center justify-end gap-2 pt-1">
+        <button type="button" onclick="closeModal()" class="px-4 py-2.5 rounded-2xl text-xs font-bold text-slate-600 bg-slate-100 active:scale-95 transition">Cancelar</button>
+        <button type="button" id="modalConfirmBtn" class="px-4 py-2.5 rounded-2xl text-xs font-bold text-white bg-rose-600 active:scale-95 transition">Sí, reiniciar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BARRA DE NAVEGACIÓN INFERIOR FIJA ESTILO APP NATIVA -->
+  <nav class="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-[0_-4px_20px_rgba(15,23,42,0.05)]">
+    <div class="max-w-lg mx-auto grid grid-cols-4 h-16 px-1">
+      <button type="button" onclick="switchTab('plan')" id="nav-plan" class="nav-btn flex flex-col items-center justify-center gap-1 text-brandBlue-600 font-bold transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+        </svg>
+        <span class="text-[10px]">Plan Diario</span>
+      </button>
+
+      <button type="button" onclick="switchTab('habits')" id="nav-habits" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-400 font-semibold transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+        <span class="text-[10px]">Hábitos</span>
+      </button>
+
+      <button type="button" onclick="switchTab('guide')" id="nav-guide" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-400 font-semibold transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+        </svg>
+        <span class="text-[10px]">Guía &amp; Reglas</span>
+      </button>
+
+      <button type="button" onclick="switchTab('install')" id="nav-install" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-400 font-semibold transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+        </svg>
+        <span class="text-[10px]">Instalar App</span>
+      </button>
+    </div>
+  </nav>
+
+  <script>
+    /**
+     * =========================================================================
+     * 1. CONFIGURACIÓN DE DATOS DEL PLAN SEMANAL (LUNES A DOMINGO)
+     * Enfoque: Perú (económico y accesible), huevos explícitos diarios,
+     * control de insulina (acantosis nigricans) y cortisol alto (estrías).
+     * =========================================================================
+     */
+    const DAYS_ORDER = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
+
+    const WEEKLY_PLAN = {
+      lunes: {
+        short: 'Lun',
+        name: 'Lunes',
+        focus: 'Arranque Anti-Cortisol & Fibra Alta',
+        summary: 'Meta: 5 a 6 huevos · Cero azúcar · Caminata post-comida.',
+        eggTarget: '5-6',
+        phases: [
+          {
+            id: 'f1',
+            time: '6:30 AM',
+            title: 'Fase 1: Arranque Matutino',
+            eggsTag: '3 Huevos',
+            items: [
+              '3 huevos sancochados con pizca de sal y orégano.',
+              '1 taza de avena hervida con canela y 1 cdta. de cacao puro (sin miel ni azúcar; opcional estevia).',
+              'Suplementos opcionales: Vitamina E (400 UI) + Espirulina junto con el desayuno.'
+            ]
+          },
+          {
+            id: 'f2',
+            time: '10:00 AM',
+            title: 'Fase 2: Sostén de Media Mañana',
+            eggsTag: 'Opcional +1',
+            items: [
+              '1 taza de té verde o té matcha sin azúcar (calma alerta sin disparar cortisol).',
+              '1 puñado chico de maní tostado sin sal o 1 huevo sancochado extra si hay hambre.',
+              'Máximo 1 o 2 chicles sin azúcar (cero caramelos).'
+            ]
+          },
+          {
+            id: 'f3',
+            time: '1:00 PM',
+            title: 'Fase 3: Carga Principal (Orden Estricto)',
+            eggsTag: 'Proteína Base',
+            items: [
+              '1.° Ensalada abundante: brócoli al vapor (3-5 min), tomate y pepino con bastante limón.',
+              '2.° Presa grande de pollo a la plancha o al horno.',
+              '3.° Porción de lentejas + máximo medio plato de arroz.'
+            ]
+          },
+          {
+            id: 'f4',
+            time: '5:00 PM',
+            title: 'Fase 4: Transición de Tarde',
+            eggsTag: 'Sin huevos',
+            items: [
+              '1 taza caliente o tibia de manzanilla con toronjil (parte de tu litro diario).',
+              '1 manzana verde entera con cáscara (fibra lenta).'
+            ]
+          },
+          {
+            id: 'f5',
+            time: '8:00 PM',
+            title: 'Fase 5: Cierre Nocturno Ligero',
+            eggsTag: '2-3 Huevos',
+            items: [
+              'Tortilla de 2 a 3 huevos con espinaca fresca picada y cebolla.',
+              'Vainitas al vapor con un chorrito de aceite de oliva o ¼ de palta.',
+              '1 taza caliente de toronjil o raíz de valeriana (cero pollo broaster ni arroz).'
+            ]
+          }
+        ]
+      },
+      martes: {
+        short: 'Mar',
+        name: 'Martes',
+        focus: 'Sensibilidad a la Insulina & Colágeno',
+        summary: 'Meta: 5 huevos · Vitamina C natural (pimiento/limón) para estrías.',
+        eggTarget: '5',
+        phases: [
+          {
+            id: 'f1',
+            time: '6:30 AM',
+            title: 'Fase 1: Arranque Matutino',
+            eggsTag: '3 Huevos',
+            items: [
+              '3 huevos revueltos con tomate picado y un puñado de espinaca.',
+              '2 rebanadas de pan integral con ¼ de palta.',
+              '1 taza de agua tibia o infusión de manzanilla sin azúcar.'
+            ]
+          },
+          {
+            id: 'f2',
+            time: '10:00 AM',
+            title: 'Fase 2: Sostén de Media Mañana',
+            eggsTag: 'Sin huevos',
+            items: [
+              '1 taza de té verde o agua pura.',
+              '1 puñado pequeño de pecanas, almendras o maní sin sal.'
+            ]
+          },
+          {
+            id: 'f3',
+            time: '1:00 PM',
+            title: 'Fase 3: Carga Principal (Orden Estricto)',
+            eggsTag: 'Proteína Base',
+            items: [
+              '1.° Ensalada fresca de lechuga, pimiento en tiras, pepino y limón.',
+              '2.° Filete de pescado a la plancha o sudado (alto en Omega-3 antiinflamatorio).',
+              '3.° Porción de frejoles o pallares + máximo ½ porción de arroz.'
+            ]
+          },
+          {
+            id: 'f4',
+            time: '5:00 PM',
+            title: 'Fase 4: Transición de Tarde',
+            eggsTag: 'Sin huevos',
+            items: [
+              '1 taza de infusión de manzanilla con toronjil.',
+              '1 mandarina mediana entera.'
+            ]
+          },
+          {
+            id: 'f5',
+            time: '8:00 PM',
+            title: 'Fase 5: Cierre Nocturno Ligero',
+            eggsTag: '2 Huevos',
+            items: [
+              '2 huevos sancochados en rodajas sobre ensalada de tomate, pepino y ¼ de palta.',
+              '1 taza de infusión de toronjil o raíz de valeriana antes de dormir.'
+            ]
+          }
+        ]
+      },
+      miercoles: {
+        short: 'Mié',
+        name: 'Miércoles',
+        focus: 'Descarga del Sistema Nervioso (Eje HPA)',
+        summary: 'Meta: 5 a 6 huevos · Doble ración de vegetales verdes con magnesio.',
+        eggTarget: '5-6',
+        phases: [
+          {
+            id: 'f1',
+            time: '6:30 AM',
+            title: 'Fase 1: Arranque Matutino',
+            eggsTag: '3 Huevos',
+            items: [
+              'Tortilla de 3 huevos con cúrcuma, pizca de pimienta negra y orégano.',
+              '1 taza de avena hervida con cacao puro y canela (sin miel ni azúcar).'
+            ]
+          },
+          {
+            id: 'f2',
+            time: '10:00 AM',
+            title: 'Fase 2: Sostén de Media Mañana',
+            eggsTag: '1 Huevo',
+            items: [
+              '1 huevo sancochado frío o tibio.',
+              '1 taza de té verde o agua pura.'
+            ]
+          },
+          {
+            id: 'f3',
+            time: '1:00 PM',
+            title: 'Fase 3: Carga Principal (Orden Estricto)',
+            eggsTag: 'Proteína Base',
+            items: [
+              '1.° Brócoli y coliflor al vapor (4 min) aliñados con limón y sal.',
+              '2.° Guiso de carne magra o pollo deshilachado (sin exceso de papa).',
+              '3.° Porción de arveja partida o lentejas + máximo ½ plato de arroz.'
+            ]
+          },
+          {
+            id: 'f4',
+            time: '5:00 PM',
+            title: 'Fase 4: Transición de Tarde',
+            eggsTag: 'Sin huevos',
+            items: [
+              '1 taza de infusión de manzanilla con toronjil.',
+              'Un puñado de fresas o arándanos frescos (antioxidantes para la piel).'
+            ]
+          },
+          {
+            id: 'f5',
+            time: '8:00 PM',
+            title: 'Fase 5: Cierre Nocturno Ligero',
+            eggsTag: '2 Huevos',
+            items: [
+              '2 huevos revueltos con vainitas picadas al vapor y cebolla.',
+              '1 taza caliente de raíz de valeriana o toronjil.'
+            ]
+          }
+        ]
+      },
+      jueves: {
+        short: 'Jue',
+        name: 'Jueves',
+        focus: 'Control Glucémico & Reparación Dérmica',
+        summary: 'Meta: 6 huevos · Huevos protagonistas en desayuno y almuerzo o cena.',
+        eggTarget: '6',
+        phases: [
+          {
+            id: 'f1',
+            time: '6:30 AM',
+            title: 'Fase 1: Arranque Matutino',
+            eggsTag: '3 Huevos',
+            items: [
+              '3 huevos sancochados + ¼ de palta.',
+              '1 taza de avena con canela y cacao puro (sin azúcar).'
+            ]
+          },
+          {
+            id: 'f2',
+            time: '10:00 AM',
+            title: 'Fase 2: Sostén de Media Mañana',
+            eggsTag: 'Sin huevos',
+            items: [
+              '1 taza de té matcha o té verde.',
+              '1 puñado chico de maní tostado sin sal.'
+            ]
+          },
+          {
+            id: 'f3',
+            time: '1:00 PM',
+            title: 'Fase 3: Carga Principal (Orden Estricto)',
+            eggsTag: 'Proteína Base',
+            items: [
+              '1.° Ensalada fresca de espinaca cruda, tomate, pepino y limón.',
+              '2.° ¼ de pollo a la brasa (sin piel, priorizando pechuga/pierna) o pollo al horno.',
+              '3.° Ensalada extra en lugar de papas fritas + máximo ½ porción de arroz.'
+            ]
+          },
+          {
+            id: 'f4',
+            time: '5:00 PM',
+            title: 'Fase 4: Transición de Tarde',
+            eggsTag: 'Sin huevos',
+            items: [
+              '1 taza de manzanilla con toronjil.',
+              '1 manzana verde o 1 pera mediana.'
+            ]
+          },
+          {
+            id: 'f5',
+            time: '8:00 PM',
+            title: 'Fase 5: Cierre Nocturno Ligero',
+            eggsTag: '3 Huevos',
+            items: [
+              'Tortilla de 3 huevos con brócoli picado al vapor y culantro.',
+              '1 taza de infusión de toronjil caliente.'
+            ]
+          }
+        ]
+      },
+      viernes: {
+        short: 'Vie',
+        name: 'Viernes',
+        focus: 'Blindaje Anti-Antojos de Fin de Semana',
+        summary: 'Meta: 5 huevos · Alta saciedad proteica para evitar comida rápida nocturna.',
+        eggTarget: '5',
+        phases: [
+          {
+            id: 'f1',
+            time: '6:30 AM',
+            title: 'Fase 1: Arranque Matutino',
+            eggsTag: '3 Huevos',
+            items: [
+              '3 huevos a la plancha (en sartén antiadherente) con tomate en rodajas.',
+              '2 rebanadas de pan integral con ¼ de palta.'
+            ]
+          },
+          {
+            id: 'f2',
+            time: '10:00 AM',
+            title: 'Fase 2: Sostén de Media Mañana',
+            eggsTag: 'Sin huevos',
+            items: [
+              '1 taza de té verde o agua pura con gotas de limón.',
+              'Máximo 1-2 chicles sin azúcar si hay tensión.'
+            ]
+          },
+          {
+            id: 'f3',
+            time: '1:00 PM',
+            title: 'Fase 3: Carga Principal (Orden Estricto)',
+            eggsTag: 'Proteína Base',
+            items: [
+              '1.° Vainitas al vapor y pimiento con limón y aceite de oliva.',
+              '2.° Pescado al vapor/plancha o pollo a la plancha.',
+              '3.° Porción de garbanzos o lentejas + máximo ½ plato de arroz.'
+            ]
+          },
+          {
+            id: 'f4',
+            time: '5:00 PM',
+            title: 'Fase 4: Transición de Tarde',
+            eggsTag: 'Sin huevos',
+            items: [
+              '1 taza de manzanilla con toronjil.',
+              '1 mandarina o un puñado de fresas.'
+            ]
+          },
+          {
+            id: 'f5',
+            time: '8:00 PM',
+            title: 'Fase 5: Cierre Nocturno (Cero Broaster)',
+            eggsTag: '2 Huevos',
+            items: [
+              '2 huevos sancochados + 1 lata de atún en agua/oliva con cebolla, tomate y limón.',
+              '1 taza caliente de toronjil o raíz de valeriana.'
+            ]
+          }
+        ]
+      },
+      sabado: {
+        short: 'Sáb',
+        name: 'Sábado',
+        focus: 'Recuperación Muscular & Descanso Profundo',
+        summary: 'Meta: 5 a 6 huevos · Mantén tus horarios fijos de sueño y comidas.',
+        eggTarget: '5-6',
+        phases: [
+          {
+            id: 'f1',
+            time: '7:00 AM',
+            title: 'Fase 1: Arranque Matutino',
+            eggsTag: '3 Huevos',
+            items: [
+              'Tortilla de 3 huevos con espinaca, tomate y cebolla.',
+              '1 taza de avena hervida con cacao puro y canela (sin miel ni azúcar).'
+            ]
+          },
+          {
+            id: 'f2',
+            time: '10:30 AM',
+            title: 'Fase 2: Sostén de Media Mañana',
+            eggsTag: '1 Huevo',
+            items: [
+              '1 huevo sancochado o 1 puñado de frutos secos.',
+              'Agua natural o té verde.'
+            ]
+          },
+          {
+            id: 'f3',
+            time: '1:30 PM',
+            title: 'Fase 3: Carga Principal (Orden Estricto)',
+            eggsTag: 'Proteína Base',
+            items: [
+              '1.° Ensalada grande de brócoli al vapor, lechuga, palta y limón.',
+              '2.° Anticuchos de corazón o pollo a la parrilla/plancha (sin papas fritas en exceso).',
+              '3.° Porción de menestra + máximo ½ porción de arroz o choclo moderado.'
+            ]
+          },
+          {
+            id: 'f4',
+            time: '5:00 PM',
+            title: 'Fase 4: Transición de Tarde',
+            eggsTag: 'Sin huevos',
+            items: [
+              '1 taza de manzanilla con toronjil.',
+              '1 manzana verde entera.'
+            ]
+          },
+          {
+            id: 'f5',
+            time: '8:00 PM',
+            title: 'Fase 5: Cierre Nocturno Ligero',
+            eggsTag: '2 Huevos',
+            items: [
+              '2 huevos revueltos con vainitas al vapor y orégano.',
+              '1 taza caliente de raíz de valeriana con manzanilla.'
+            ]
+          }
+        ]
+      },
+      domingo: {
+        short: 'Dom',
+        name: 'Domingo',
+        focus: 'Reset Hormonal & Preparación Semanal',
+        summary: 'Meta: 5 huevos · Hierve 6-9 huevos hoy para tener listos en la refri.',
+        eggTarget: '5',
+        phases: [
+          {
+            id: 'f1',
+            time: '7:00 AM',
+            title: 'Fase 1: Arranque Matutino',
+            eggsTag: '3 Huevos',
+            items: [
+              '3 huevos sancochados con ¼ de palta y tomate en rodajas.',
+              '1 taza de avena con canela y cacao puro sin azúcar.'
+            ]
+          },
+          {
+            id: 'f2',
+            time: '10:30 AM',
+            title: 'Fase 2: Sostén de Media Mañana',
+            eggsTag: 'Sin huevos',
+            items: [
+              'Infusión suave o agua pura.',
+              '1 puñado pequeño de maní tostado sin sal.'
+            ]
+          },
+          {
+            id: 'f3',
+            time: '1:30 PM',
+            title: 'Fase 3: Carga Principal (Orden Estricto)',
+            eggsTag: 'Proteína Base',
+            items: [
+              '1.° Ensalada fresca con pepino, tomate, pimiento, espinaca y limón.',
+              '2.° Pollo al horno o pescado sudado con bastante cebolla y tomate.',
+              '3.° Menestra + máximo ½ plato de arroz.'
+            ]
+          },
+          {
+            id: 'f4',
+            time: '5:00 PM',
+            title: 'Fase 4: Transición de Tarde',
+            eggsTag: 'Sin huevos',
+            items: [
+              '1 taza de manzanilla con toronjil.',
+              'Un puñado de arándanos o 1 mandarina.'
+            ]
+          },
+          {
+            id: 'f5',
+            time: '8:00 PM',
+            title: 'Fase 5: Cierre Nocturno Ligero',
+            eggsTag: '2 Huevos',
+            items: [
+              'Tortilla de 2 huevos con brócoli picado.',
+              '1 taza de toronjil caliente y apaga pantallas 1 hora antes de dormir.'
+            ]
+          }
+        ]
+      }
+    };
+
+    // Lista fija de hábitos clave diarios (Cortisol, Insulina y Piel)
+    const DAILY_HABITS_LIST = [
+      {
+        id: 'nivea_am',
+        title: 'Crema Nivea en estrías (Mañana)',
+        desc: 'Aplicar tras ducharte en abdomen, hombros, brazos, codos y muslos.',
+        tag: 'Piel'
+      },
+      {
+        id: 'sunscreen',
+        title: 'Bloqueador solar en zonas expuestas',
+        desc: 'Protege brazos, hombros y cuello para que estrías rojas no se manchen.',
+        tag: 'Piel'
+      },
+      {
+        id: 'walk_post',
+        title: 'Caminata de 15 min post-comida',
+        desc: 'Después de almorzar o cenar para que los músculos absorban glucosa.',
+        tag: 'Insulina'
+      },
+      {
+        id: 'strength',
+        title: 'Rutina de fuerza moderada (25-40 min)',
+        desc: 'Sentadillas, flexiones, zancadas y planchas (3-4 veces/semana).',
+        tag: 'Insulina'
+      },
+      {
+        id: 'no_junk',
+        title: 'Cero pollo broaster y cero dulces/chicles con azúcar',
+        desc: 'Sin frituras nocturnas ni caramelos que disparen la acantosis.',
+        tag: 'Insulina'
+      },
+      {
+        id: 'nivea_pm',
+        title: 'Masaje suave con Nivea antes de dormir',
+        desc: 'Activa circulación local en estrías rojas/moradas durante la noche.',
+        tag: 'Piel'
+      },
+      {
+        id: 'sleep_hygiene',
+        title: '7-8h de sueño + Cero pantallas 1h antes',
+        desc: 'Oscuridad total para apagar el cortisol nocturno y subir melatonina.',
+        tag: 'Cortisol'
+      }
+    ];
+
+    /**
+     * =========================================================================
+     * 2. ESTADO DE LA APLICACIÓN Y PERSISTENCIA EN LOCALSTORAGE
+     * =========================================================================
+     */
+    const STORAGE_KEY = 'equilibrio_metabolico_piel_v1';
+
+    // Detectar día actual de la semana en español (0 = Domingo -> index 6)
+    function getTodayKey() {
+      const jsDay = new Date().getDay(); // 0 Dom, 1 Lun...
+      const map = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+      return map[jsDay] || 'lunes';
+    }
+
+    let currentTab = 'plan';
+    let selectedDay = getTodayKey();
+    let appState = loadState();
+
+    function getDefaultDayState() {
+      return {
+        meals: { f1: false, f2: false, f3: false, f4: false, f5: false },
+        habits: {},
+        eggs: 0,
+        tea: 0
+      };
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          // Asegurar que todos los días existan
+          DAYS_ORDER.forEach(d => {
+            if (!parsed[d]) parsed[d] = getDefaultDayState();
+          });
+          return parsed;
+        }
+      } catch (e) {
+        console.error('Error leyendo localStorage:', e);
+      }
+      const initial = {};
+      DAYS_ORDER.forEach(d => {
+        initial[d] = getDefaultDayState();
+      });
+      return initial;
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (e) {
+        console.error('Error guardando localStorage:', e);
+      }
+      updateGlobalProgressUI();
+    }
+
+    /**
+     * =========================================================================
+     * 3. RENDERIZADO DE INTERFAZ Y NAVEGACIÓN
+     * =========================================================================
+     */
+    function renderDayButtons() {
+      const container = document.getElementById('dayButtonsContainer');
+      const todayKey = getTodayKey();
+      container.innerHTML = DAYS_ORDER.map(dayKey => {
+        const dayInfo = WEEKLY_PLAN[dayKey];
+        const isSelected = dayKey === selectedDay;
+        const isToday = dayKey === todayKey;
+
+        const baseClasses = 'flex-1 min-w-[44px] py-2 px-1.5 rounded-2xl text-center transition active:scale-95 flex flex-col items-center justify-center border';
+        const stateClasses = isSelected
+          ? 'bg-brandBlue-600 text-white border-brandBlue-600 shadow-sm font-extrabold'
+          : 'bg-slate-50 text-slate-600 border-slate-200/80 hover:bg-brandBlue-50 font-semibold';
+
+        return `
+          <button type="button" onclick="selectDay('${dayKey}')" class="${baseClasses} ${stateClasses}">
+            <span class="text-xs leading-none">${dayInfo.short}</span>
+            <span class="w-1.5 h-1.5 rounded-full mt-1 ${isToday ? (isSelected ? 'bg-warmAmber-400' : 'bg-brandBlue-500') : 'bg-transparent'}"></span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectDay(dayKey) {
+      selectedDay = dayKey;
+      renderDayButtons();
+      renderPlanTab();
+      renderHabitsTab();
+      updateGlobalProgressUI();
+    }
+
+    function switchTab(tabName) {
+      currentTab = tabName;
+      const tabs = ['plan', 'habits', 'guide', 'install'];
+
+      tabs.forEach(t => {
+        const panel = document.getElementById(`tab-${t}`);
+        const navBtn = document.getElementById(`nav-${t}`);
+        if (t === tabName) {
+          panel.classList.remove('hidden');
+          navBtn.classList.remove('text-slate-400', 'font-semibold');
+          navBtn.classList.add('text-brandBlue-600', 'font-bold');
+        } else {
+          panel.classList.add('hidden');
+          navBtn.classList.remove('text-brandBlue-600', 'font-bold');
+          navBtn.classList.add('text-slate-400', 'font-semibold');
+        }
+      });
+
+      // Mostrar selector de días solo en Plan Diario y Hábitos
+      const dayBar = document.getElementById('daySelectorBar');
+      if (tabName === 'plan' || tabName === 'habits') {
+        dayBar.classList.remove('hidden');
+      } else {
+        dayBar.classList.add('hidden');
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderPlanTab() {
+      const plan = WEEKLY_PLAN[selectedDay];
+      const dayData = appState[selectedDay];
+
+      document.getElementById('planDayBadge').textContent = plan.name + (selectedDay === getTodayKey() ? ' · HOY' : '');
+      document.getElementById('planDayFocus').textContent = plan.focus;
+      document.getElementById('planDaySummary').textContent = plan.summary;
+      document.getElementById('planEggTarget').textContent = plan.eggTarget;
+
+      const phasesContainer = document.getElementById('phasesContainer');
+      phasesContainer.innerHTML = plan.phases.map(phase => {
+        const isChecked = !!dayData.meals[phase.id];
+        const cardStyle = isChecked
+          ? 'bg-brandBlue-50/70 border-brandBlue-300'
+          : 'bg-white border-slate-200/80';
+
+        const hasEggs = phase.eggsTag.toLowerCase().includes('huevo');
+        const tagStyle = hasEggs
+          ? 'bg-warmAmber-100 text-warmAmber-800 border-warmAmber-200'
+          : 'bg-brandBlue-50 text-brandBlue-700 border-brandBlue-100';
+
+        return `
+          <div class="rounded-3xl p-4 border shadow-xs transition-all ${cardStyle}">
+            <div class="flex items-start justify-between gap-3">
+              <div class="space-y-1">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-lg">${phase.time}</span>
+                  <span class="text-[11px] font-bold px-2 py-0.5 rounded-lg border ${tagStyle}">${phase.eggsTag}</span>
+                </div>
+                <h3 class="text-sm font-extrabold text-slate-900 pt-0.5 ${isChecked ? 'line-through text-slate-500' : ''}">${phase.title}</h3>
+              </div>
+
+              <!-- Checkbox táctil grande -->
+              <label class="relative inline-flex items-center cursor-pointer p-1 -m-1 shrink-0">
+                <input type="checkbox" class="sr-only peer" ${isChecked ? 'checked' : ''} onchange="toggleMeal('${phase.id}')" />
+                <div class="w-8 h-8 rounded-2xl border-2 border-slate-300 bg-white peer-checked:bg-brandBlue-600 peer-checked:border-brandBlue-600 flex items-center justify-center transition">
+                  <svg class="w-5 h-5 text-white ${isChecked ? 'opacity-100' : 'opacity-0'} transition" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                  </svg>
+                </div>
+              </label>
+            </div>
+
+            <ul class="mt-3 space-y-1.5 text-xs text-slate-700 leading-relaxed ${isChecked ? 'opacity-70' : ''}">
+              ${phase.items.map(item => `
+                <li class="flex items-start gap-2">
+                  <span class="text-brandBlue-500 font-bold mt-0.5">•</span>
+                  <span>${item}</span>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleMeal(phaseId) {
+      const currentVal = !!appState[selectedDay].meals[phaseId];
+      appState[selectedDay].meals[phaseId] = !currentVal;
+      saveState();
+      renderPlanTab();
+    }
+
+    function renderHabitsTab() {
+      const dayData = appState[selectedDay];
+      document.getElementById('eggCounterVal').textContent = dayData.eggs || 0;
+      document.getElementById('teaCounterVal').textContent = dayData.tea || 0;
+
+      const container = document.getElementById('habitsChecklistContainer');
+      let completedHabits = 0;
+
+      container.innerHTML = DAILY_HABITS_LIST.map(habit => {
+        const isChecked = !!dayData.habits[habit.id];
+        if (isChecked) completedHabits++;
+
+        let tagColor = 'bg-brandBlue-50 text-brandBlue-700';
+        if (habit.tag === 'Piel') tagColor = 'bg-warmAmber-100 text-warmAmber-800';
+        if (habit.tag === 'Cortisol') tagColor = 'bg-indigo-50 text-indigo-700';
+
+        return `
+          <label class="flex items-start gap-3 p-3 rounded-2xl border transition cursor-pointer active:scale-[0.99] ${isChecked ? 'bg-brandBlue-50/60 border-brandBlue-200' : 'bg-slate-50/70 border-slate-200/70'}">
+            <input type="checkbox" class="sr-only peer" ${isChecked ? 'checked' : ''} onchange="toggleHabit('${habit.id}')" />
+            <div class="w-6 h-6 mt-0.5 rounded-xl border-2 border-slate-300 bg-white peer-checked:bg-brandBlue-600 peer-checked:border-brandBlue-600 flex items-center justify-center shrink-0 transition">
+              <svg class="w-4 h-4 text-white ${isChecked ? 'opacity-100' : 'opacity-0'}" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+              </svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-bold text-slate-900 ${isChecked ? 'line-through text-slate-500' : ''}">${habit.title}</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${tagColor}">${habit.tag}</span>
+              </div>
+              <p class="text-[11px] text-slate-600 mt-0.5 leading-snug">${habit.desc}</p>
+            </div>
+          </label>
+        `;
+      }).join('');
+
+      document.getElementById('habitsBadgeCount').textContent = `${completedHabits}/${DAILY_HABITS_LIST.length}`;
+    }
+
+    function toggleHabit(habitId) {
+      const currentVal = !!appState[selectedDay].habits[habitId];
+      appState[selectedDay].habits[habitId] = !currentVal;
+      saveState();
+      renderHabitsTab();
+    }
+
+    function updateCounter(type, delta) {
+      const current = appState[selectedDay][type] || 0;
+      const next = Math.max(0, Math.min(20, current + delta));
+      appState[selectedDay][type] = next;
+      saveState();
+      renderHabitsTab();
+    }
+
+    function updateGlobalProgressUI() {
+      const dayData = appState[selectedDay];
+      const mealsDone = Object.values(dayData.meals).filter(Boolean).length;
+      const totalMeals = 5;
+
+      const habitsDone = DAILY_HABITS_LIST.filter(h => !!dayData.habits[h.id]).length;
+      const totalHabits = DAILY_HABITS_LIST.length;
+
+      const totalTasks = totalMeals + totalHabits;
+      const doneTasks = mealsDone + habitsDone;
+      const pct = Math.round((doneTasks / totalTasks) * 100);
+
+      document.getElementById('headerProgressText').textContent = `${pct}% ${WEEKLY_PLAN[selectedDay].short}`;
+      document.getElementById('mealsCountLabel').textContent = `${mealsDone} / ${totalMeals} fases`;
+      document.getElementById('mealsProgressBar').style.width = `${Math.round((mealsDone / totalMeals) * 100)}%`;
+    }
+
+    /**
+     * =========================================================================
+     * 4. MODAL PERSONALIZADO PARA REINICIO (SIN ALERT/CONFIRM NATIVOS)
+     * =========================================================================
+     */
+    function confirmResetDay() {
+      const modal = document.getElementById('customModal');
+      document.getElementById('modalTitle').textContent = `¿Reiniciar registros del ${WEEKLY_PLAN[selectedDay].name}?`;
+      document.getElementById('modalBody').textContent = 'Se pondrán en cero los contadores de huevos, infusiones y checkboxes marcados para este día.';
+      const confirmBtn = document.getElementById('modalConfirmBtn');
+      confirmBtn.onclick = () => {
+        appState[selectedDay] = getDefaultDayState();
+        saveState();
+        renderPlanTab();
+        renderHabitsTab();
+        closeModal();
+      };
+      modal.classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('customModal').classList.add('hidden');
+    }
+
+    /**
+     * =========================================================================
+     * 5. SOPORTE PWA AUTOCONTENIDO (MANIFIESTO DINÁMICO + SERVICE WORKER)
+     * Permite instalar la web en Android / Redmi 13C desde GitHub Pages
+     * =========================================================================
+     */
+    let deferredInstallPrompt = null;
+
+    function initPwaCapabilities() {
+      // 1. Generar ícono SVG codificado en URL para el manifiesto dinámico
+      const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#2563EB"/><circle cx="256" cy="256" r="110" fill="#FBBF24"/><path d="M256 72v48M256 392v48M72 256h48M392 256h48M126 126l34 34M352 352l34 34M386 126l-34 34M160 352l-34 34" stroke="#FFFFFF" stroke-width="28" stroke-linecap="round"/></svg>`;
+      const iconUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgIcon);
+
+      // 2. Crear manifest.json dinámico vía Blob
+      const manifestData = {
+        name: 'Equilibrio Metabólico & Piel',
+        short_name: 'EquilibrioPiel',
+        description: 'Plan alimenticio semanal y hábitos anti-cortisol, control de insulina y cuidado de estrías.',
+        start_url: './',
+        display: 'standalone',
+        orientation: 'portrait',
+        background_color: '#F4F7FB',
+        theme_color: '#2563EB',
+        icons: [
+          {
+            src: iconUrl,
+            sizes: '192x192',
+            type: 'image/svg+xml',
+            purpose: 'any maskable'
+          },
+          {
+            src: iconUrl,
+            sizes: '512x512',
+            type: 'image/svg+xml',
+            purpose: 'any maskable'
+          }
+        ]
+      };
+
+      try {
+        const manifestBlob = new Blob([JSON.stringify(manifestData)], { type: 'application/manifest+json' });
+        const manifestUrl = URL.createObjectURL(manifestBlob);
+        const linkEl = document.createElement('link');
+        linkEl.rel = 'manifest';
+        linkEl.href = manifestUrl;
+        document.head.appendChild(linkEl);
+      } catch (err) {
+        console.warn('Manifiesto dinámico no soportado en este entorno:', err);
+      }
+
+      // 3. Registrar Service Worker offline mediante Blob (compatible con HTTPS en GitHub Pages)
+      if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+        const swCode = `
+          const CACHE_NAME = 'equilibrio-piel-cache-v1';
+          self.addEventListener('install', (event) => {
+            self.skipWaiting();
+            event.waitUntil(
+              caches.open(CACHE_NAME).then((cache) => cache.addAll(['./']).catch(() => {}))
+            );
+          });
+          self.addEventListener('activate', (event) => {
+            event.waitUntil(self.clients.claim());
+          });
+          self.addEventListener('fetch', (event) => {
+            if (event.request.method !== 'GET') return;
+            event.respondWith(
+              fetch(event.request)
+                .then((response) => {
+                  const copy = response.clone();
+                  caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy)).catch(() => {});
+                  return response;
+                })
+                .catch(() => caches.match(event.request))
+            );
+          });
+        `;
+        try {
+          const swBlob = new Blob([swCode], { type: 'application/javascript' });
+          const swUrl = URL.createObjectURL(swBlob);
+          navigator.serviceWorker.register(swUrl).catch(() => {});
+        } catch (err) {
+          console.warn('Registro de SW omitido:', err);
+        }
+      }
+
+      // 4. Escuchar evento de instalación nativa de Android/Chrome
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredInstallPrompt = e;
+        const btn = document.getElementById('btnInstallPwa');
+        if (btn) btn.classList.remove('hidden');
+      });
+    }
+
+    async function triggerInstallPrompt() {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      const { outcome } = await deferredInstallPrompt.userChoice;
+      if (outcome === 'accepted') {
+        deferredInstallPrompt = null;
+        document.getElementById('btnInstallPwa').classList.add('hidden');
+      }
+    }
+
+    // Inicialización al cargar la página
+    window.addEventListener('DOMContentLoaded', () => {
+      renderDayButtons();
+      renderPlanTab();
+      renderHabitsTab();
+      updateGlobalProgressUI();
+      initPwaCapabilities();
+    });
+  </script>
+</body>
+</html>
